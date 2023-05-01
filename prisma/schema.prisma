@@ -1,0 +1,80 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+model User {
+  id    Int     @id @default(autoincrement())
+  email String  @unique
+  bt_customer_id String
+  oneTimePurchases OneTimePurchase[]
+  subscriptions Subscription[]
+  transactions Transaction[]
+  orders Order[]
+}
+model Order {
+    id Int @id @default(autoincrement())
+    user_id Int
+    user User @relation(fields: [user_id], references: [id])
+    @@index([user_id])
+    transactions Transaction[]
+    order_date DateTime
+}
+model OneTimePurchase {
+    id Int @id @default(autoincrement())
+    bt_transaction_id String
+    user_id Int
+    user User @relation(fields: [user_id], references: [id])
+    @@index([user_id])
+    name String
+}
+model Subscription {
+    id Int @id @default(autoincrement())
+    bt_subscription_id String
+    user_id Int
+    user User @relation(fields: [user_id], references: [id])
+    @@index([user_id])
+    subscriptionType SubscriptionType
+    start_date DateTime
+    end_date DateTime
+    status SubscriptionStatus
+}
+model Transaction {
+    id Int @id @default(autoincrement())
+    order_id Int
+    order Order @relation(fields: [order_id], references: [id])
+    @@index([order_id])
+    user_id Int
+    user User @relation(fields: [user_id], references: [id])
+    @@index([user_id])
+    transactionType TransactionType
+    transaction_reference_id Int
+    transaction_amount Float
+    transaction_date DateTime
+    status TransactionStatus
+}
+
+enum SubscriptionStatus {
+    ACTIVE
+    CANCELED
+    EXPIRED
+    PAST_DUE
+    PENDING
+}
+enum SubscriptionType {
+    MONTHLY
+    ANNUAL
+}
+enum TransactionType {
+    ONE_TIME_PURCHASE
+    SUBSCRIPTION
+}
+enum TransactionStatus {
+    SUCCESS
+    FAILED
+}
